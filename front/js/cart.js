@@ -11,7 +11,22 @@ fetch(`${urlApi}${id}`)
 .catch(err => console.log("error to retrive product",err));
 
 
-const fillProduct = (product,colorSelected,totalSelected) =>
+
+const calculPrix =async () =>
+{
+    totalPayer =0;
+    for(let i=0; i < localStorage.length; i++)
+    {
+      let key=localStorage.key(i);
+      let item= JSON.parse(localStorage.getItem(key));
+      let product = await getProduct(item.id);
+      totalPayer = totalPayer + (item.total * product.price);
+    }
+
+    $prix.textContent=totalPayer;
+}
+
+const fillProduct = (product,colorSelected,totalSelected,key) =>
 {
   //noeud Article
   $nodArticle=document.createElement("article");
@@ -31,7 +46,7 @@ const fillProduct = (product,colorSelected,totalSelected) =>
   //noeud div content
   $nodDivContent=document.createElement("div");
   $nodDivContent.classList.add("cart__item__content");
-  //description
+  //noeud description
   $nodDivContentDesc=document.createElement("div");
   $nodDivContentDesc.classList.add("cart__item__content__description");
   $nodTitle=document.createElement("h2");
@@ -44,7 +59,7 @@ const fillProduct = (product,colorSelected,totalSelected) =>
   $nodDivContentDesc.appendChild($nodColor);
   $nodDivContentDesc.appendChild($nodPrice);
   $nodDivContent.appendChild($nodDivContentDesc);
-  //settings div-1
+  //noeud settings div-1
   $nodSettings=document.createElement("div");
   $nodSettings.classList.add("cart__item__content__settings");
   $nodSettingsQuantity=document.createElement("div");
@@ -55,19 +70,26 @@ const fillProduct = (product,colorSelected,totalSelected) =>
   $nodInput.setAttribute('type','number');
   $nodInput.setAttribute('name','itemQuantity');
   $nodInput.setAttribute('min','1');
+  $nodInput.setAttribute('id',`${key}`);
   $nodInput.setAttribute('max','100');
   $nodInput.setAttribute('value',`${totalSelected}`);
-  $nodInput.classList.add('itemQuantity')
+  $nodInput.classList.add('itemQuantity');
+  
   $nodSettingsQuantity.appendChild($nodQuantity);
   $nodSettingsQuantity.appendChild($nodInput);
   $nodSettings.appendChild( $nodSettingsQuantity);
-  //settings div-2
+  //noeud settings div-2
   $nodSettingsDelete=document.createElement("div");
   $nodSettingsDelete.classList.add("cart__item__content__settings__delete");
   $nodDelete=document.createElement("p");
+  $nodDelete.classList.add('deleteItem');
+  $nodDelete.textContent="Supprimer";
+  $nodDelete.addEventListener('click',function(e){
+    localStorage.removeItem(key);
+    window.location.reload();
+  });
   $nodSettingsDelete.appendChild($nodDelete);
-  $nodSettings.appendChild($nodSettingsDelete);
-  
+  $nodSettings.appendChild($nodSettingsDelete);  
   $nodDivContent.appendChild($nodSettings);
   
   //final
@@ -76,21 +98,27 @@ const fillProduct = (product,colorSelected,totalSelected) =>
   //ajout dans le container
   $container.appendChild($nodArticle);
 
-  //mettre a jour le prix
-  totalPayer = totalPayer + (totalSelected * product.price);
+  //addeventListener
+  document.getElementById(key).addEventListener('change',async function(e){
+    let item= JSON.parse(localStorage.getItem(key));
+    item.total=document.getElementById(key).value;
+    localStorage.setItem(key,JSON.stringify(item));
+
+    await calculPrix();
+  });
 }
 
 
 const main =async () =>
 {
-  for(let i=1; i <= localStorage.length; i++)
+  for(let i=0; i < localStorage.length; i++)
   {
-    let item= JSON.parse(localStorage.getItem(`item ${i}`));
+    let key=localStorage.key(i);
+    let item= JSON.parse(localStorage.getItem(key));
     let product = await getProduct(item.id);
-    fillProduct(product,item.color,item.total);
+    fillProduct(product,item.color,item.total,key);
   }
-
-  $prix.textContent=totalPayer;
+   await calculPrix();
 };
 
 main();
