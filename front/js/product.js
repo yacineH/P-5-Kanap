@@ -46,14 +46,6 @@ const getIdUrl=(chemin) =>
   return url.searchParams.get('id');
 }
 
-class itemCart{
-    constructor(id,total,color){
-        this.id=id;
-        this.total=total;
-        this.color=color;
-    }
-}
-
 
 const addItem = (item) =>
 {
