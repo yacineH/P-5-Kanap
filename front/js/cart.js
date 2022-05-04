@@ -1,6 +1,9 @@
 
 const urlApi='http://localhost:3000/api/products/';
 const $container=document.getElementById("cart__items");
+const $prix=document.getElementById("totalPrice");
+
+let totalPayer=0;
 
 const getProduct = id =>
 fetch(`${urlApi}${id}`)
@@ -72,6 +75,9 @@ const fillProduct = (product,colorSelected,totalSelected) =>
 
   //ajout dans le container
   $container.appendChild($nodArticle);
+
+  //mettre a jour le prix
+  totalPayer = totalPayer + (totalSelected * product.price);
 }
 
 
@@ -83,6 +89,8 @@ const main =async () =>
     let product = await getProduct(item.id);
     fillProduct(product,item.color,item.total);
   }
+
+  $prix.textContent=totalPayer;
 };
 
 main();
