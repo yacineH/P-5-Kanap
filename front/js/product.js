@@ -83,9 +83,11 @@ const main = async () =>
     productSelected=await getProduct(idParam);
     fillProduct(productSelected);
 
-    document.getElementById('addToCart').addEventListener('click',function(e){
-
-    addItem({id:idParam,total:$totalProduct.value,color:$nodColors.value});
+    document.getElementById('addToCart').addEventListener('click',function(event)
+    {
+      event.preventDefault();
+      event.stopPropagation();
+      addItem({id:idParam,total:$totalProduct.value,color:$nodColors.value});
 
     });
 }

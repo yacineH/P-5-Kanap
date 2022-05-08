@@ -1,15 +1,29 @@
 
 const urlApi='http://localhost:3000/api/products/';
+const urlPost='http://localhost:3000/api/products/order';
+
 const $container=document.getElementById("cart__items");
 const $prix=document.getElementById("totalPrice");
+const $order=document.getElementById("order");
+const $firstName=document.getElementById("firstName");
+const $firstNameError=document.getElementById("firstNameErrorMsg");
+const $lastName=document.getElementById("lastName");
+const $lastNameError=document.getElementById("lastNameErrorMsg");
+const $address=document.getElementById("address");
+const $addressError=document.getElementById("addressErrorMsg");
+const $city=document.getElementById("city");
+const $cityError=document.getElementById("cityErrorMsg");
+const $email=document.getElementById("email");
+const $emailError=document.getElementById("emailErrorMsg");
+const $form=document.querySelector(".cart__order__form");
 
 let totalPayer=0;
+let isValidForm,isValidFirst,isValidLast,isValidCity,isValidAddress,isValidEmail=false;
 
 const getProduct = id =>
 fetch(`${urlApi}${id}`)
 .then(res => res.json())
 .catch(err => console.log("error to retrive product",err));
-
 
 
 const calculPrix =async () =>
@@ -108,9 +122,155 @@ const fillProduct = (product,colorSelected,totalSelected,key) =>
   });
 }
 
+const disableSubmit = (param)=>{
+  if(!param)
+  {
+   $order.setAttribute('disabled',true);
+  }
+  else{
+   $order.removeAttribute('disabled');
+  }
+}
+
+const allValidation = ()=>{
+  isValidForm = isValidFirst && isValidCity && isValidAddress && isValidEmail && isValidLast;
+  disableSubmit(isValidForm);
+}
+
+const createContact = (first,last,em,addr,cit) =>
+{
+  return {firstName:first,lastName:last,email:em,address:addr,city:cit};
+}
+
+const allProductsCart = ()=>
+{
+   let products=[];
+
+   for(let i=0; i < localStorage.length; i++)
+   {
+     let key=localStorage.key(i);
+     let item= JSON.parse(localStorage.getItem(key));
+     products.push(item.id);
+   }
+   return products;
+}
+
+const addEvents = () =>
+{
+  $form.addEventListener('submit',function(event)
+  {
+    event.preventDefault();
+    let client=createContact($firstName.value,$lastName.value,$email.value,$address.value,$city.value);
+    let listProducts= allProductsCart();
+
+
+    fetch(urlPost, 
+      {
+       method: "POST",
+       mode:"cors",
+       headers: {
+        "Content-Type": "application/json",
+        "Accept":"application/json"
+      },
+      body: JSON.stringify({
+            contact:client,
+            products:listProducts})
+    })
+    .then(async (response) => { 
+      if(response.ok)
+      {
+        console.log(response);
+        return await response.json();        
+      }
+      else
+      {
+        console.log('Mauvaise réponse du réseau');
+      }
+    })
+    .then(content=>{
+      let orderId=content.orderId;
+      window.location.assign(`http://127.0.0.1:5500/front/html/confirmation.html?orderId=${orderId}`);
+    })
+    .catch(error=> {
+      console.log('Il y a eu un problème avec l\'opération fetch: ' + error.message);
+    });
+  }); 
+
+  $firstName.addEventListener('change',function(event){
+    let valeur= event.target.value.trim();
+    if(!valeur || valeur === "")
+    {
+      $firstNameError.textContent="* Champ obligatoire";
+    }
+    else{
+      $firstNameError.textContent="";
+      isValidFirst=true;
+      allValidation();
+    }
+  });
+
+  $lastName.addEventListener('change',function(event){
+    let valeur= event.target.value.trim();
+    if(!valeur || valeur === "")
+    {
+      $lastNameError.textContent="* Champ obligatoire";
+    }
+    else{
+      $lastNameError.textContent="";
+      isValidLast=true;
+      allValidation();
+    }
+  });
+
+  $address.addEventListener('change',function(event){
+    let valeur= event.target.value.trim();
+    if(!valeur || valeur === "")
+    {
+      $addressError.textContent="* Champ obligatoire";
+    }
+    else{
+      $addressError.textContent="";
+      isValidAddress=true;
+      allValidation();
+    }
+  });
+
+  $city.addEventListener('change',function(event){
+    let valeur= event.target.value.trim();
+    if(!valeur || valeur === "")
+    {
+      $cityError.textContent="* Champ obligatoire";
+    }
+    else{
+      $cityError.textContent="";
+      isValidCity=true;
+      allValidation();
+    }
+  });
+
+  $email.addEventListener('change',function(event){
+    let valeur= event.target.value.trim();
+    let masque=/^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+    if(!valeur || valeur === "")
+    {
+      $emailError.textContent="* Champ obligatoire";
+    }
+    else if(!masque.test(valeur)){
+      $emailError.textContent="Email incorrecte";
+    }
+    else{
+      $emailError.textContent="";
+      isValidEmail=true;
+      allValidation();
+    }
+  });
+};
+
 
 const main =async () =>
 {
+  addEvents();
+ 
   for(let i=0; i < localStorage.length; i++)
   {
     let key=localStorage.key(i);
@@ -118,7 +278,34 @@ const main =async () =>
     let product = await getProduct(item.id);
     fillProduct(product,item.color,item.total,key);
   }
-   await calculPrix();
+ 
+  await calculPrix();
+  disableSubmit(isValidForm);
 };
 
 main();
+
+
+
+
+
+// fetch(urlPost, 
+//   {
+//     method: "POST",
+//     headers: {
+//       "Content-Type": "application/json",
+//     },
+//     body: JSON.stringify({
+//          contact:{firstName:"yacine",lastName:"yacine",email:"cine@gmail.com",address:"paris",city:"paris"},
+//          products:["107fb5b75607497b96722bda5b504926","107fb5b75607497b96722bda5b504926"]})
+//   })
+//   .then(async (response) => {
+//      try{
+//       // console.log(response);
+//       const contenu =await response.json();
+//       console.log("order: ",contenu.orderId);
+//      }catch(e)
+//      {
+//        console.log(e);
+//      }
+//   });

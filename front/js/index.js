@@ -1,7 +1,8 @@
 const $containerProducts=document.getElementById("items");
+const urlProducts='http://localhost:3000/api/products';
 
 const retrieveProducts = () => 
-       fetch('http://localhost:3000/api/products')
+       fetch(urlProducts)
        .then(res => res.json())
        .catch(err => console.log("error to retrive products from api",err));
 
