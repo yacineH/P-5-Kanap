@@ -1,10 +1,9 @@
-$orderId=document.getElementById("orderId");
 
 
-const main =() =>{
-    var url=new URL(location.href);
-     $orderId.textContent= url.searchParams.get('orderId');
-
-};
+/**
+ * Entrée d'execution
+ * a partir de l'url on recupère orderId et puis l'ajouter dans le DOM
+ */
+const main = () => document.getElementById("orderId").textContent= new URL(location.href).searchParams.get('orderId');
 
 main();

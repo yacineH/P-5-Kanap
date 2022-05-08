@@ -1,12 +1,18 @@
-const $containerProducts=document.getElementById("items");
-const urlProducts='http://localhost:3000/api/products';
 
-const retrieveProducts = () => 
-       fetch(urlProducts)
-       .then(res => res.json())
-       .catch(err => console.log("error to retrive products from api",err));
+/**
+ * Fait un appel fetch api pour recuperer
+ * tous les produts du site
+ * @param { string } url
+ * @returns  { promise } 
+ */
+const retrieveProducts = (url) => fetch(url)
+    
 
-
+/**
+ * Crée le noeud html du produit 
+ * @param { product } product 
+ * @returns { HTMLElement } 
+ */
 const createNoeudProduct = product =>
 {
    const $nodProduct=document.createElement('a');
@@ -34,20 +40,29 @@ const createNoeudProduct = product =>
    return $nodProduct;
 }
 
-
+/**
+ * Ajoute dans le conteneur html les cards des produits
+ * @param { product[] } products 
+ */
 const createProductsCard= products =>
 { 
     for(let i=0;i<products.length;i++)
     {
-       $containerProducts.appendChild(createNoeudProduct(products[i]))    ;
+      document.getElementById("items").appendChild(createNoeudProduct(products[i]))    ;
     }
 }
-
-const main = async ()=>{
-
-    const products=await retrieveProducts();
-
-    createProductsCard(products);
+/**
+ * Entrée d'éxecution
+ * fait appel a la fonction retrieveProducts
+ * une fois les produits recupérés elle fait 
+ * appel a createProductsCard pour générer la card pour chaque produit
+ */
+const main = async () =>
+{
+  retrieveProducts('http://localhost:3000/api/products')
+    .then(res => res.json())
+    .then(products=> createProductsCard(products))
+    .catch(err => console.log("error to retrive products from api",err));
 }
 
 main();

@@ -1,6 +1,4 @@
-
-const strUrl=window.location.href;
-const urlApi='http://localhost:3000/api/products/';
+//variables globale node du DOM
 const $nodDivImg=document.querySelector('.item__img');
 const $nodTitle=document.getElementById('title');
 const $nodPrice=document.getElementById('price');
@@ -8,15 +6,17 @@ const $nodDesc=document.getElementById('description');
 const $nodColors=document.getElementById('colors');
 const $totalProduct=document.getElementById('quantity');
 
-let idParam="";
+/**
+ * Fait un appel fetch api pour recuperer le données du produit selectionné
+ * @param { string } id 
+ * @returns 
+ */
+const getProduct = id =>fetch(`http://localhost:3000/api/products/${id}`);
 
-const getProduct = id =>
-       fetch(`${urlApi}${id}`)
-       .then(res => res.json())
-       .catch(err => console.log("error to retrive product",err));
-
-
-
+/**
+ * Génère le code Html a partir des données du produit
+ * @param { product } product 
+ */
 const fillProduct = product =>
 {
    const $nodImg = document.createElement('img');
@@ -24,7 +24,6 @@ const fillProduct = product =>
    $nodImg.setAttribute('alt',`${product.altTxt}`);
    $nodDivImg.appendChild($nodImg);
    
-
    $nodTitle.textContent=product.name;
    $nodPrice.textContent=product.price;
    $nodDesc.textContent=product.description;
@@ -39,18 +38,27 @@ const fillProduct = product =>
    }
 }
 
-
+/**
+ * Récupère id du produit
+ * @param { string } chemin 
+ * @returns { string }
+ */
 const getIdUrl=(chemin) =>
 {
   var url=new URL(chemin);
   return url.searchParams.get('id');
 }
 
-
-const addItem = (item) =>
+/**
+ * Ajoute item dans le panier avec utilisation de localstorage du navigateur
+ * @param { {id:string,total:Number,color:string} } item 
+ */
+const addItemCart = (item) =>
 {
+  //conteur des elements dans le panier 
    let conteur=0;
 
+   //localstorage est vide
    if(localStorage.length>0)
    {
         conteur=localStorage.length;
@@ -59,6 +67,7 @@ const addItem = (item) =>
         for(let i=1; i<=conteur ;i++)
         {
             let element=JSON.parse(localStorage.getItem(`item ${i}`));
+            //verification si l'element a ajouter existe dans le panier et avec la meme couleur
             if((element.id === item.id) && (element.color === item.color))
             {
                 itemTrouve=true;
@@ -66,8 +75,7 @@ const addItem = (item) =>
                 localStorage.setItem(`item ${i}`,JSON.stringify(element));
                 break;
             }
-        }
-        
+        }        
         if(!itemTrouve) localStorage.setItem(`item ${++conteur}`, JSON.stringify(item));
    }
    else
@@ -76,20 +84,32 @@ const addItem = (item) =>
    }
 }
 
+/**
+ * Ajout un event click avec sa callback au addToCart
+ * @param { string } idParam 
+ */
+const addEventCart=(idParam)=>
+{
+  document.getElementById('addToCart').addEventListener('click',function(event)
+  {
+    event.preventDefault();
+    event.stopPropagation();
+    addItemCart({id:idParam,total:$totalProduct.value,color:$nodColors.value});
+  });
+}
+
+
+/**
+ * Entrée d'éxecution
+ */
 const main = async () =>
 {
-    var idParam=getIdUrl(strUrl);
+    getProduct(getIdUrl(window.location.href))
+    .then(res => res.json())
+    .then(product => fillProduct(product))
+    .catch(err => console.log("error to retrive product",err));
 
-    productSelected=await getProduct(idParam);
-    fillProduct(productSelected);
-
-    document.getElementById('addToCart').addEventListener('click',function(event)
-    {
-      event.preventDefault();
-      event.stopPropagation();
-      addItem({id:idParam,total:$totalProduct.value,color:$nodColors.value});
-
-    });
+    addEventCart(getIdUrl(window.location.href));
 }
 
 main();

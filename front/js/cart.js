@@ -1,7 +1,7 @@
 
-const urlApi='http://localhost:3000/api/products/';
 const urlPost='http://localhost:3000/api/products/order';
 
+//variable globale element du DOM
 const $container=document.getElementById("cart__items");
 const $prix=document.getElementById("totalPrice");
 const $order=document.getElementById("order");
@@ -20,12 +20,17 @@ const $form=document.querySelector(".cart__order__form");
 let totalPayer=0;
 let isValidForm,isValidFirst,isValidLast,isValidCity,isValidAddress,isValidEmail=false;
 
-const getProduct = id =>
-fetch(`${urlApi}${id}`)
-.then(res => res.json())
-.catch(err => console.log("error to retrive product",err));
+/**
+ * Appel fetch Api pour récuperer product
+ * @param { string } id 
+ * @returns { promise }
+ */
+const getProduct = id => fetch(`http://localhost:3000/api/products/${id}`);
 
-
+/**
+ * Parcours les produits du localstorage et additionne leur prix
+ * le prix est recupéré avec un appel Api avec getProduct 
+ */
 const calculPrix =async () =>
 {
     totalPayer =0;
@@ -36,10 +41,16 @@ const calculPrix =async () =>
       let product = await getProduct(item.id);
       totalPayer = totalPayer + (item.total * product.price);
     }
-
     $prix.textContent=totalPayer;
 }
 
+/**
+ * Permet ajouter produit dans le conteneur pour qu'il soit afficher sur la page cart
+ * @param { product } product 
+ * @param { string } colorSelected 
+ * @param { string } totalSelected 
+ * @param { string } key 
+ */
 const fillProduct = (product,colorSelected,totalSelected,key) =>
 {
   //noeud Article
@@ -122,6 +133,11 @@ const fillProduct = (product,colorSelected,totalSelected,key) =>
   });
 }
 
+/**
+ * Activation ou desactivation du submit 
+ * si le formulaire est valide ou pas
+ * @param { boolean } param 
+ */
 const disableSubmit = (param)=>{
   if(!param)
   {
@@ -137,11 +153,24 @@ const allValidation = ()=>{
   disableSubmit(isValidForm);
 }
 
+/**
+ * 
+ * @param { string } first est firstName 
+ * @param { string } last  est lastName
+ * @param { string } em est l'email 
+ * @param { string } addr est l'addresse 
+ * @param { string } cit  est city
+ * @returns {{firstName:string,lastName:string,email:string,address:string,city:string}}
+ */
 const createContact = (first,last,em,addr,cit) =>
 {
   return {firstName:first,lastName:last,email:em,address:addr,city:cit};
 }
 
+/**
+ * Obtient tous les produits dans le panier a partir du localstorage
+ * @returns {id:string,total:Number,color:string}[]
+ */
 const allProductsCart = ()=>
 {
    let products=[];
@@ -155,6 +184,9 @@ const allProductsCart = ()=>
    return products;
 }
 
+/**
+ * Ajoute des events avec leurs Callback pour les elements du formulaire
+ */
 const addEvents = () =>
 {
   $form.addEventListener('submit',function(event)
@@ -162,7 +194,6 @@ const addEvents = () =>
     event.preventDefault();
     let client=createContact($firstName.value,$lastName.value,$email.value,$address.value,$city.value);
     let listProducts= allProductsCart();
-
 
     fetch(urlPost, 
       {
@@ -188,6 +219,7 @@ const addEvents = () =>
       }
     })
     .then(content=>{
+      //obtient orderId et puis redirect vers confirmation
       let orderId=content.orderId;
       window.location.assign(`http://127.0.0.1:5500/front/html/confirmation.html?orderId=${orderId}`);
     })
@@ -266,46 +298,34 @@ const addEvents = () =>
   });
 };
 
-
-const main =async () =>
+/**
+ * Parcours tous les produits dans le localStorage
+ * pour les affichés dans la page cart
+ */
+const showProductsCart =async () =>
 {
-  addEvents();
- 
   for(let i=0; i < localStorage.length; i++)
   {
     let key=localStorage.key(i);
     let item= JSON.parse(localStorage.getItem(key));
-    let product = await getProduct(item.id);
-    fillProduct(product,item.color,item.total,key);
+    getProduct(item.id)
+    .then(res => res.json())
+    .then(product=>fillProduct(product,item.color,item.total,key))
+    .catch(err => console.log("error to retrive product",err));;   
   }
- 
-  await calculPrix();
+}
+
+/**
+ * Entrée d'execution
+ */
+const main = () =>
+{
+  addEvents();
+  showProductsCart();
+  calculPrix();
   disableSubmit(isValidForm);
 };
 
 main();
 
 
-
-
-
-// fetch(urlPost, 
-//   {
-//     method: "POST",
-//     headers: {
-//       "Content-Type": "application/json",
-//     },
-//     body: JSON.stringify({
-//          contact:{firstName:"yacine",lastName:"yacine",email:"cine@gmail.com",address:"paris",city:"paris"},
-//          products:["107fb5b75607497b96722bda5b504926","107fb5b75607497b96722bda5b504926"]})
-//   })
-//   .then(async (response) => {
-//      try{
-//       // console.log(response);
-//       const contenu =await response.json();
-//       console.log("order: ",contenu.orderId);
-//      }catch(e)
-//      {
-//        console.log(e);
-//      }
-//   });
