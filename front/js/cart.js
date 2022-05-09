@@ -147,8 +147,11 @@ const disableSubmit = (param)=>{
    $order.removeAttribute('disabled');
   }
 }
-
-const allValidation = ()=>{
+/**
+ * Verifie si le formulaire est valide si c'est le cas 
+ * activation de commander sinon desactivation
+ */
+const validationForm = ()=>{
   isValidForm = isValidFirst && isValidCity && isValidAddress && isValidEmail && isValidLast;
   disableSubmit(isValidForm);
 }
@@ -229,28 +232,38 @@ const addEvents = () =>
   }); 
 
   $firstName.addEventListener('change',function(event){
+    
     let valeur= event.target.value.trim();
+    let masque=/^([^0-9]*)$/;
+
     if(!valeur || valeur === "")
     {
       $firstNameError.textContent="* Champ obligatoire";
     }
+    else if(!masque.test(valeur)){
+      $firstNameError.textContent="Le champ ne doit pas contenir des chiffres.";
+    }
     else{
       $firstNameError.textContent="";
       isValidFirst=true;
-      allValidation();
+      validationForm();
     }
   });
 
   $lastName.addEventListener('change',function(event){
     let valeur= event.target.value.trim();
+    let masque=/^([^0-9]*)$/;
     if(!valeur || valeur === "")
     {
       $lastNameError.textContent="* Champ obligatoire";
     }
+    else if(!masque.test(valeur)){
+      $lastNameError.textContent="Le champ ne doit pas contenir des chiffres.";
+    }
     else{
       $lastNameError.textContent="";
       isValidLast=true;
-      allValidation();
+      validationForm();
     }
   });
 
@@ -263,20 +276,24 @@ const addEvents = () =>
     else{
       $addressError.textContent="";
       isValidAddress=true;
-      allValidation();
+      validationForm();
     }
   });
 
   $city.addEventListener('change',function(event){
     let valeur= event.target.value.trim();
+    let masque=/^([^0-9]*)$/;
     if(!valeur || valeur === "")
     {
       $cityError.textContent="* Champ obligatoire";
     }
+    else if(!masque.test(valeur)){
+      $cityError.textContent="Le champ ne doit pas contenir des chiffres.";
+    }
     else{
       $cityError.textContent="";
       isValidCity=true;
-      allValidation();
+      validationForm();
     }
   });
 
@@ -293,7 +310,7 @@ const addEvents = () =>
     else{
       $emailError.textContent="";
       isValidEmail=true;
-      allValidation();
+      validationForm();
     }
   });
 };
@@ -323,7 +340,7 @@ const main = () =>
   addEvents();
   showProductsCart();
   calculPrix();
-  disableSubmit(isValidForm);
+  validationForm();
 };
 
 main();
