@@ -38,7 +38,7 @@ const calculPrix =async () =>
     {
       let key=localStorage.key(i);
       let item= JSON.parse(localStorage.getItem(key));
-      let product = await getProduct(item.id);
+      let product = await getProduct(item.id).then(response=>response.json());
       totalPayer = totalPayer + (item.total * product.price);
     }
     $prix.textContent=totalPayer;
