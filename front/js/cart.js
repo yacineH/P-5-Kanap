@@ -151,9 +151,20 @@ const disableSubmit = (param)=>{
  * Verifie si le formulaire est valide si c'est le cas 
  * activation de commander sinon desactivation
  */
-const validationForm = ()=>{
-  isValidForm = isValidFirst && isValidCity && isValidAddress && isValidEmail && isValidLast;
-  disableSubmit(isValidForm);
+const validationForm = () =>
+{
+  if(localStorage.length>0)
+  {
+    isValidForm = isValidFirst && isValidCity && isValidAddress && isValidEmail && isValidLast;
+
+    if(!isValidFirst) $firstNameError.textContent="* Champ obligatoire";
+    if(!isValidLast) $lastNameError.textContent="* Champ obligatoire";
+    if(!isValidAddress) $addressError.textContent="* Champ obligatoire";
+    if(!isValidCity) $cityError.textContent="* Champ obligatoire";
+    if(!isValidEmail) $emailError.textContent="* Champ obligatoire";
+    
+    disableSubmit(isValidForm);
+  }
 }
 
 /**
@@ -196,42 +207,47 @@ const addEvents = () =>
   {
     event.preventDefault();
     let client=createContact($firstName.value,$lastName.value,$email.value,$address.value,$city.value);
-    let listProducts= allProductsCart();
+    validationForm();
 
-    fetch(urlPost, 
-      {
-       method: "POST",
-       mode:"cors",
-       headers: {
-        "Content-Type": "application/json",
-        "Accept":"application/json"
-      },
-      body: JSON.stringify({
-            contact:client,
-            products:listProducts})
-    })
-    .then(async (response) => { 
-      if(response.ok)
-      {
-        console.log(response);
-        return await response.json();        
-      }
-      else
-      {
-        console.log('Mauvaise réponse du réseau');
-      }
-    })
-    .then(content=>{
-      //obtient orderId et puis redirect vers confirmation
-      let orderId=content.orderId;
-      window.location.assign(`http://127.0.0.1:5500/front/html/confirmation.html?orderId=${orderId}`);
-    })
-    .catch(error=> {
-      console.log('Il y a eu un problème avec l\'opération fetch: ' + error.message);
-    });
+    if(isValidForm)
+    {
+      let listProducts= allProductsCart();
+
+      fetch(urlPost, 
+        {
+        method: "POST",
+        mode:"cors",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept":"application/json"
+        },
+        body: JSON.stringify({
+              contact:client,
+              products:listProducts})
+      })
+      .then(async (response) => { 
+        if(response.ok)
+        {
+          console.log(response);
+          return await response.json();        
+        }
+        else
+        {
+          console.log('Mauvaise réponse du réseau');
+        }
+      })
+      .then(content=>{
+        //obtient orderId et puis redirect vers confirmation
+        let orderId=content.orderId;
+        window.location.assign(`http://127.0.0.1:5500/front/html/confirmation.html?orderId=${orderId}`);
+      })
+      .catch(error=> {
+        console.log('Il y a eu un problème avec l\'opération fetch: ' + error.message);
+      });
+    };
   }); 
 
-  $firstName.addEventListener('change',function(event){
+  $firstName.addEventListener('input',function(event){
     
     let valeur= event.target.value.trim();
     let masque=/^([^0-9]*)$/;
@@ -250,7 +266,7 @@ const addEvents = () =>
     }
   });
 
-  $lastName.addEventListener('change',function(event){
+  $lastName.addEventListener('input',function(event){
     let valeur= event.target.value.trim();
     let masque=/^([^0-9]*)$/;
     if(!valeur || valeur === "")
@@ -267,7 +283,7 @@ const addEvents = () =>
     }
   });
 
-  $address.addEventListener('change',function(event){
+  $address.addEventListener('input',function(event){
     let valeur= event.target.value.trim();
     if(!valeur || valeur === "")
     {
@@ -280,7 +296,7 @@ const addEvents = () =>
     }
   });
 
-  $city.addEventListener('change',function(event){
+  $city.addEventListener('input',function(event){
     let valeur= event.target.value.trim();
     let masque=/^([^0-9]*)$/;
     if(!valeur || valeur === "")
@@ -297,7 +313,7 @@ const addEvents = () =>
     }
   });
 
-  $email.addEventListener('change',function(event){
+  $email.addEventListener('input',function(event){
     let valeur= event.target.value.trim();
     let masque=/^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
     if(!valeur || valeur === "")
