@@ -71,6 +71,7 @@ const addItemCart = (item) =>
             if((element.id === item.id) && (element.color === item.color))
             {
                 itemTrouve=true;
+               // element.total = (+(element.total) + +(item.total)).toString();
                 element.total = (parseInt(element.total) + parseInt(item.total)).toString();
                 localStorage.setItem(`item ${i}`,JSON.stringify(element));
                 break;
